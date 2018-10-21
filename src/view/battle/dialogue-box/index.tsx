@@ -5,13 +5,14 @@ import { interpolate } from '../../../lib/interpolate';
 interface DialogueBoxProps {
   width: number;
   height: number;
-  growth: number;
+  speed: number;
   border: number;
+  children: (props: { x: number; y: number }) => React.ReactNode;
 }
 
 export default class DialogueBox extends React.Component<DialogueBoxProps> {
   static defaultProps = {
-    growth: 15,
+    speed: 15,
     border: 4,
   };
 
@@ -21,6 +22,7 @@ export default class DialogueBox extends React.Component<DialogueBoxProps> {
 
   componentDidMount() {
     this.draw();
+    this.setState({});
   }
 
   componentDidUpdate() {
@@ -34,23 +36,24 @@ export default class DialogueBox extends React.Component<DialogueBoxProps> {
     const ctx = canvas.canvasContext;
     if (ctx) {
       ctx.clearRect(0, 0, canvas.canvasElement.width, canvas.canvasElement.height);
+      ctx.fillStyle = '#fff';
+
       const finalWidth = this.props.width;
       const finalHeight = this.props.height;
-      ctx.fillStyle = '#fff';
       const x = Math.ceil((canvas.canvasElement.width - this.width) / 2);
       const y = Math.ceil((canvas.canvasElement.height - this.height) * 0.7);
-      ctx.fillRect(x, y, this.width, this.height);
-      ctx.clearRect(
-        x + this.props.border,
-        y + this.props.border,
-        this.width - this.props.border * 2,
-        this.height - this.props.border * 2
+      ctx.fillRect(
+        x - this.props.border,
+        y - this.props.border,
+        this.width + this.props.border * 2,
+        this.height + this.props.border * 2
       );
+      ctx.clearRect(x, y, this.width, this.height);
 
       if (finalWidth !== this.width || finalHeight !== this.height) {
         requestAnimationFrame(() => {
-          this.width = interpolate(this.width, finalWidth, this.props.growth);
-          this.height = interpolate(this.height, finalHeight, this.props.growth);
+          this.width = interpolate(this.width, finalWidth, this.props.speed);
+          this.height = interpolate(this.height, finalHeight, this.props.speed);
           this.draw();
         });
       }
@@ -62,6 +65,18 @@ export default class DialogueBox extends React.Component<DialogueBoxProps> {
   };
 
   render() {
+    if (this.canvasRef && this.canvasRef.canvasElement) {
+      const x = Math.ceil((this.canvasRef.canvasElement.width - this.props.width) / 2);
+      const y = Math.ceil((this.canvasRef.canvasElement.height - this.props.height) * 0.7);
+
+      return (
+        <React.Fragment>
+          <Canvas ref={this.setRef} />
+          {this.props.children({ x, y })}
+        </React.Fragment>
+      );
+    }
+
     return <Canvas ref={this.setRef} />;
   }
 }

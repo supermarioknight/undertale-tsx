@@ -28,11 +28,13 @@ interface DodgingProps {
   speed: number;
   boundingBox: [number, number, number, number];
   heartColor: string;
+  heartSize: number;
 }
 
 export default class Dodging extends React.Component<DodgingProps> {
   static defaultProps = {
     heartColor: 'red',
+    heartSize: 25,
   };
 
   canvasRef: Canvas | null = null;
@@ -91,13 +93,15 @@ export default class Dodging extends React.Component<DodgingProps> {
 
     const ctx = canvas.canvasContext;
     if (ctx) {
-      // const [x1, y1, x2, y2] = this.props.boundingBox;
-      this.x = move(this.x, this.xMovement, this.props.speed, [311, 915]);
-      this.y = move(this.y, this.yMovement, this.props.speed, [450, 650]);
-
+      const { heartSize, heartColor, boundingBox, speed } = this.props;
       ctx.clearRect(0, 0, canvas.canvasElement.width, canvas.canvasElement.height);
-      ctx.fillStyle = this.props.heartColor;
-      ctx.fillRect(this.x, this.y, 25, 25);
+
+      const [x1, y1, x2, y2] = boundingBox;
+      this.x = move(this.x, this.xMovement, speed, [x1, x1 + x2 - heartSize]);
+      this.y = move(this.y, this.yMovement, speed, [y1, y1 + y2 - heartSize]);
+
+      ctx.fillStyle = heartColor;
+      ctx.fillRect(this.x, this.y, heartSize, heartSize);
 
       requestAnimationFrame(this.draw);
     }
