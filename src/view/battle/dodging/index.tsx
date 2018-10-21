@@ -53,6 +53,7 @@ export default class Dodging extends React.Component<DodgingProps> {
     gravityPullX: 0,
   };
 
+  unlisten: (() => void) | null = null;
   canvasRef: Canvas | null = null;
   x: number = calcInitialHeartPosition(this.props.boundingBox, this.props.heartSize).x;
   y: number = calcInitialHeartPosition(this.props.boundingBox, this.props.heartSize).y;
@@ -60,47 +61,51 @@ export default class Dodging extends React.Component<DodgingProps> {
   yMovement: Movement = this.props.gravityPullY;
 
   componentDidMount() {
-    listenTo('keydown', e => {
-      switch (e.key) {
-        case 'ArrowRight':
-          this.xMovement = 1;
-          break;
+    this.unlisten = listenTo(['keydown', 'keyup'], e => {
+      if (e.type === 'keydown') {
+        switch (e.key) {
+          case 'ArrowRight':
+            this.xMovement = 1;
+            break;
 
-        case 'ArrowLeft':
-          this.xMovement = -1;
-          break;
+          case 'ArrowLeft':
+            this.xMovement = -1;
+            break;
 
-        case 'ArrowUp':
-          this.yMovement = -1;
-          break;
+          case 'ArrowUp':
+            this.yMovement = -1;
+            break;
 
-        case 'ArrowDown':
-          this.yMovement = 1;
-          break;
-      }
-    });
+          case 'ArrowDown':
+            this.yMovement = 1;
+            break;
+        }
+      } else if (e.type === 'keyup') {
+        switch (e.key) {
+          case 'ArrowRight':
+            this.xMovement = this.props.gravityPullX;
+            break;
 
-    listenTo('keyup', e => {
-      switch (e.key) {
-        case 'ArrowRight':
-          this.xMovement = this.props.gravityPullX;
-          break;
+          case 'ArrowLeft':
+            this.xMovement = this.props.gravityPullX;
+            break;
 
-        case 'ArrowLeft':
-          this.xMovement = this.props.gravityPullX;
-          break;
+          case 'ArrowUp':
+            this.yMovement = this.props.gravityPullY;
+            break;
 
-        case 'ArrowUp':
-          this.yMovement = this.props.gravityPullY;
-          break;
-
-        case 'ArrowDown':
-          this.yMovement = this.props.gravityPullY;
-          break;
+          case 'ArrowDown':
+            this.yMovement = this.props.gravityPullY;
+            break;
+        }
       }
     });
 
     this.draw();
+  }
+
+  componentWillUnmount() {
+    this.unlisten && this.unlisten();
   }
 
   draw = () => {
