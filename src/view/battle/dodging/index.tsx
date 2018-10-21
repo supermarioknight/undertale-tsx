@@ -29,19 +29,35 @@ interface DodgingProps {
   boundingBox: [number, number, number, number];
   heartColor: string;
   heartSize: number;
+  gravityPullX: Movement;
+  gravityPullY: Movement;
 }
+
+const calcInitialHeartPosition = (
+  boundingBox: [number, number, number, number],
+  heartSize: number
+) => {
+  const [x1, y1, x2, y2] = boundingBox;
+
+  return {
+    x: x1 + (x2 - x1) / 2 - heartSize / 2,
+    y: y1 + (y2 - y1) / 2 - heartSize / 2,
+  };
+};
 
 export default class Dodging extends React.Component<DodgingProps> {
   static defaultProps = {
     heartColor: 'red',
-    heartSize: 25,
+    heartSize: 40,
+    gravityPullY: 0,
+    gravityPullX: 0,
   };
 
   canvasRef: Canvas | null = null;
-  x: number = 0;
-  y: number = 0;
-  xMovement: Movement = 0;
-  yMovement: Movement = 0;
+  x: number = calcInitialHeartPosition(this.props.boundingBox, this.props.heartSize).x;
+  y: number = calcInitialHeartPosition(this.props.boundingBox, this.props.heartSize).y;
+  xMovement: Movement = this.props.gravityPullX;
+  yMovement: Movement = this.props.gravityPullY;
 
   componentDidMount() {
     listenTo('keydown', e => {
@@ -67,19 +83,19 @@ export default class Dodging extends React.Component<DodgingProps> {
     listenTo('keyup', e => {
       switch (e.key) {
         case 'ArrowRight':
-          this.xMovement = 0;
+          this.xMovement = this.props.gravityPullX;
           break;
 
         case 'ArrowLeft':
-          this.xMovement = 0;
+          this.xMovement = this.props.gravityPullX;
           break;
 
         case 'ArrowUp':
-          this.yMovement = 0;
+          this.yMovement = this.props.gravityPullY;
           break;
 
         case 'ArrowDown':
-          this.yMovement = 0;
+          this.yMovement = this.props.gravityPullY;
           break;
       }
     });
@@ -97,8 +113,8 @@ export default class Dodging extends React.Component<DodgingProps> {
       ctx.clearRect(0, 0, canvas.canvasElement.width, canvas.canvasElement.height);
 
       const [x1, y1, x2, y2] = boundingBox;
-      this.x = move(this.x, this.xMovement, speed, [x1, x1 + x2 - heartSize]);
-      this.y = move(this.y, this.yMovement, speed, [y1, y1 + y2 - heartSize]);
+      this.x = move(this.x, this.xMovement, speed, [x1, x2 - heartSize]);
+      this.y = move(this.y, this.yMovement, speed, [y1, y2 - heartSize]);
 
       ctx.fillStyle = heartColor;
       ctx.fillRect(this.x, this.y, heartSize, heartSize);

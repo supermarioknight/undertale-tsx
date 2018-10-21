@@ -8,12 +8,13 @@ const Container = styled.div`
   height: 100vh;
 `;
 
-type DialogueBoxState = 'small' | 'large' | 'xlarge' | 'dialogue' | 'attacking';
+type DialogueBoxState = 'small' | 'medium' | 'large' | 'xlarge' | 'dialogue' | 'attacking';
 
 const dialogueDimensions = {
   small: [200, 200],
-  large: [400, 400],
-  xlarge: [600, 400],
+  medium: [200, 300],
+  large: [300, 300],
+  xlarge: [500, 250],
   dialogue: [600, 200],
   attacking: [800, 200],
 };
@@ -26,7 +27,7 @@ interface BattleState {
 
 export default class Battle extends Component<BattleProps, BattleState> {
   state: BattleState = {
-    dialogueState: 'dialogue',
+    dialogueState: 'small',
   };
 
   render() {
@@ -35,7 +36,9 @@ export default class Battle extends Component<BattleProps, BattleState> {
     return (
       <Container>
         <DialogueBox width={dialogueWidth} height={dialogueHeight}>
-          {({ x, y }) => <Dodging speed={7} boundingBox={[x, y, dialogueWidth, dialogueHeight]} />}
+          {({ x, y }) => (
+            <Dodging speed={5} boundingBox={[x, y, x + dialogueWidth, y + dialogueHeight]} />
+          )}
         </DialogueBox>
       </Container>
     );
