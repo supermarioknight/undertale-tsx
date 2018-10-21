@@ -1,18 +1,10 @@
 import React from 'react';
+import Canvas from '../../canvas';
 import { interpolate } from '../../../lib/interpolate';
 
-type DialogueBoxState = 'small' | 'large' | 'xlarge' | 'dialogue' | 'attacking';
-
-const dialogueDimensions = {
-  small: [200, 200],
-  large: [400, 400],
-  xlarge: [600, 400],
-  dialogue: [600, 200],
-  attacking: [800, 200],
-};
-
 interface DialogueBoxProps {
-  state: DialogueBoxState;
+  width: number;
+  height: number;
   growth: number;
   border: number;
 }
@@ -23,37 +15,30 @@ export default class DialogueBox extends React.Component<DialogueBoxProps> {
     border: 4,
   };
 
-  canvasRef: HTMLCanvasElement | null = null;
-  canvasContext: CanvasRenderingContext2D | null = null;
-  width: number = dialogueDimensions[this.props.state][0];
-  height: number = dialogueDimensions[this.props.state][1];
+  width: number = this.props.width;
+  height: number = this.props.height;
+  canvasRef: Canvas | null = null;
 
   componentDidMount() {
-    if (this.canvasRef && this.canvasRef.parentElement) {
-      this.canvasRef.height = this.canvasRef.parentElement.clientHeight;
-      this.canvasRef.width = this.canvasRef.parentElement.clientWidth;
-      this.canvasContext = this.canvasRef.getContext('2d');
-      this.draw(this.props.state);
-    }
+    this.draw();
   }
 
-  componentDidUpdate(prevProps: DialogueBoxProps) {
-    if (prevProps.state !== this.props.state) {
-      this.draw(this.props.state);
-    }
+  componentDidUpdate() {
+    this.draw();
   }
 
-  draw(state: DialogueBoxState) {
+  draw() {
     const canvas = this.canvasRef;
-    if (!canvas) return;
+    if (!canvas || !canvas.canvasElement || !canvas.canvasContext) return;
 
-    const ctx = this.canvasContext;
+    const ctx = canvas.canvasContext;
     if (ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const [finalWidth, finalHeight] = dialogueDimensions[state];
+      ctx.clearRect(0, 0, canvas.canvasElement.width, canvas.canvasElement.height);
+      const finalWidth = this.props.width;
+      const finalHeight = this.props.height;
       ctx.fillStyle = '#fff';
-      const x = Math.ceil((canvas.width - this.width) / 2);
-      const y = Math.ceil((canvas.height - this.height) * 0.7);
+      const x = Math.ceil((canvas.canvasElement.width - this.width) / 2);
+      const y = Math.ceil((canvas.canvasElement.height - this.height) * 0.7);
       ctx.fillRect(x, y, this.width, this.height);
       ctx.clearRect(
         x + this.props.border,
@@ -66,17 +51,17 @@ export default class DialogueBox extends React.Component<DialogueBoxProps> {
         requestAnimationFrame(() => {
           this.width = interpolate(this.width, finalWidth, this.props.growth);
           this.height = interpolate(this.height, finalHeight, this.props.growth);
-          this.draw(state);
+          this.draw();
         });
       }
     }
   }
 
-  setRef = (ref: HTMLCanvasElement | null) => {
+  setRef = (ref: Canvas | null) => {
     this.canvasRef = ref;
   };
 
   render() {
-    return <canvas ref={this.setRef} />;
+    return <Canvas ref={this.setRef} />;
   }
 }

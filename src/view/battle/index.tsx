@@ -1,31 +1,41 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 import DialogueBox from './dialogue-box';
-import { rand } from '../../lib/rand';
+import Dodging from './dodging';
 
 const Container = styled.div`
   width: 100vw;
   height: 100vh;
 `;
 
+type DialogueBoxState = 'small' | 'large' | 'xlarge' | 'dialogue' | 'attacking';
+
+const dialogueDimensions = {
+  small: [200, 200],
+  large: [400, 400],
+  xlarge: [600, 400],
+  dialogue: [600, 200],
+  attacking: [800, 200],
+};
+
 interface BattleProps {}
 
-export default class Battle extends Component<BattleProps> {
-  state = {
-    box: 'small',
-  };
+interface BattleState {
+  dialogueState: DialogueBoxState;
+}
 
-  setDialogueBox = () => {
-    const val = ['small', 'large', 'xlarge', 'dialogue', 'attacking'];
-    this.setState((prev: any) => ({
-      box: rand(val, prev.box),
-    }));
+export default class Battle extends Component<BattleProps, BattleState> {
+  state: BattleState = {
+    dialogueState: 'dialogue',
   };
 
   render() {
+    const [dialogueWidth, dialogueHeight] = dialogueDimensions[this.state.dialogueState];
+
     return (
-      <Container onClick={this.setDialogueBox}>
-        <DialogueBox state={this.state.box as any} />
+      <Container>
+        <DialogueBox width={dialogueWidth} height={dialogueHeight} />
+        <Dodging speed={5} boundingBox={[0, 0, 200, 200]} />
       </Container>
     );
   }
