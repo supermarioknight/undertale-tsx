@@ -38,6 +38,16 @@ const combineBoundingBox = (b1: BoundingBox, b2: BoundingBox): BoundingBox => {
   return boundingBox;
 };
 
+const moveParticle = (
+  position: [number, number],
+  destination: [number, number],
+  boundingBox: BoundingBox,
+  speed: number
+): [number, number] => {
+  const [x, y] = position;
+  return [x + speed, y + speed];
+};
+
 export default class DodgingParticles extends React.Component<DodgingParticlesProps> {
   canvasRef: Canvas | null = null;
   /**
@@ -65,8 +75,11 @@ export default class DodgingParticles extends React.Component<DodgingParticlesPr
       ctx.clearRect(0, 0, canvas.canvasElement.width, canvas.canvasElement.height);
 
       particles.forEach((particle, index) => {
-        const [x, y] = this.particlePositions[index];
-        ctx.fillRect(x1 + x, y1 + y, particle.width, particle.height);
+        const [x, y, xx, yy] = this.particlePositions[index];
+        const [newx, newy] = moveParticle([x, y], [0, 0], boundingBox, particle.speed);
+        this.particlePositions[index] = [newx, newy, xx, yy];
+
+        ctx.fillRect(x1 + newx, y1 + newy, particle.width, particle.height);
       });
 
       onUpdate(

@@ -168,7 +168,7 @@ export default class Dodging extends React.Component<DodgingProps> {
         <DodgingParticles
           boundingBox={this.props.boundingBox}
           particles={[
-            { width: 10, height: 10, behaviour: 'bounce', start: [50, 50], speed: 10, damage: 1 },
+            { width: 10, height: 10, behaviour: 'bounce', start: [50, 50], speed: 2, damage: 1 },
           ]}
           onUpdate={this.calculateHit}
         />
