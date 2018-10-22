@@ -8,7 +8,4 @@ export const GlobalStyles = createGlobalStyle`
     }
 `;
 
-export const AppContainer = styled.div`
-  width: 100vw;
-  height: 100vh;
-`;
+export const AppContainer = styled.div``;

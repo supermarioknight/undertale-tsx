@@ -3,6 +3,9 @@ import { interpolate } from '../../../lib/interpolate';
 import { limit } from '../../../lib/limit';
 import { listenTo } from '../../../lib/event';
 import Canvas from '../../canvas';
+import DodgingParticles, { ParticleUpdate } from '../dodging-particles';
+import { BoundingBox } from '../types';
+import { intersects } from '../../../lib/intersects';
 
 type Movement = -1 | 0 | 1;
 
@@ -26,17 +29,16 @@ const move = (
 
 interface DodgingProps {
   speed: number;
-  boundingBox: [number, number, number, number];
+  boundingBox: BoundingBox;
   heartColor: string;
   heartSize: number;
   gravityPullX: Movement;
   gravityPullY: Movement;
+  invincibilityFrames: number;
+  onHit: (damage: number) => void;
 }
 
-const calcInitialHeartPosition = (
-  boundingBox: [number, number, number, number],
-  heartSize: number
-) => {
+const calcInitialHeartPosition = (boundingBox: BoundingBox, heartSize: number) => {
   const [x1, y1, x2, y2] = boundingBox;
 
   return {
@@ -51,8 +53,10 @@ export default class Dodging extends React.Component<DodgingProps> {
     heartSize: 40,
     gravityPullY: 0,
     gravityPullX: 0,
+    invincibilityFrames: 60,
   };
 
+  invincible: number | undefined;
   unlisten: (() => void) | null = null;
   canvasRef: Canvas | null = null;
   x: number = calcInitialHeartPosition(this.props.boundingBox, this.props.heartSize).x;
@@ -128,11 +132,47 @@ export default class Dodging extends React.Component<DodgingProps> {
     }
   };
 
+  calculateHit = (particles: ParticleUpdate[]) => {
+    const heartPosition: BoundingBox = [
+      this.x,
+      this.y,
+      this.x + this.props.heartSize,
+      this.y + this.props.heartSize,
+    ];
+
+    particles.forEach(particle => {
+      const particlePosition = particle.boundingBox;
+      if (intersects(heartPosition)(particlePosition)) {
+        if (this.invincible === undefined) {
+          this.props.onHit(particle.damage);
+          this.invincible = 0;
+        }
+      }
+    });
+
+    if (this.invincible === this.props.invincibilityFrames) {
+      this.invincible = undefined;
+    } else if (this.invincible !== undefined) {
+      this.invincible += 1;
+    }
+  };
+
   setRef = (ref: Canvas | null) => {
     this.canvasRef = ref;
   };
 
   render() {
-    return <Canvas ref={this.setRef} />;
+    return (
+      <React.Fragment>
+        <Canvas ref={this.setRef} />
+        <DodgingParticles
+          boundingBox={this.props.boundingBox}
+          particles={[
+            { width: 10, height: 10, behaviour: 'bounce', start: [50, 50], speed: 10, damage: 1 },
+          ]}
+          onUpdate={this.calculateHit}
+        />
+      </React.Fragment>
+    );
   }
 }

@@ -37,7 +37,11 @@ export default class Battle extends Component<BattleProps, BattleState> {
       <Container>
         <DialogueBox width={dialogueWidth} height={dialogueHeight}>
           {({ x, y }) => (
-            <Dodging speed={5} boundingBox={[x, y, x + dialogueWidth, y + dialogueHeight]} />
+            <Dodging
+              onHit={console.log}
+              speed={5}
+              boundingBox={[x, y, x + dialogueWidth, y + dialogueHeight]}
+            />
           )}
         </DialogueBox>
       </Container>
