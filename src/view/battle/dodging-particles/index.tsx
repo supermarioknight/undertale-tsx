@@ -1,6 +1,8 @@
 import React from 'react';
 import Canvas from '../../canvas';
 import { BoundingBox } from '../types';
+import { interpolate } from '../../../lib/interpolate';
+import { limit } from '../../../lib/limit';
 
 interface Particle {
   width: number;
@@ -39,13 +41,26 @@ const combineBoundingBox = (b1: BoundingBox, b2: BoundingBox): BoundingBox => {
 };
 
 const moveParticle = (
-  position: [number, number],
-  destination: [number, number],
+  position: BoundingBox,
+  direction: number,
   boundingBox: BoundingBox,
-  speed: number
-): [number, number] => {
+  particle: Particle
+): BoundingBox => {
   const [x, y] = position;
-  return [x + speed, y + speed];
+  const { speed } = particle;
+  const minimalBoundingBox = [
+    0,
+    0,
+    boundingBox[2] - boundingBox[0],
+    boundingBox[3] - boundingBox[1],
+  ];
+  const newX = limit(interpolate(x, x + speed, speed), [0, minimalBoundingBox[2] - particle.width]);
+  const newY = limit(interpolate(y, y + speed, speed), [
+    0,
+    minimalBoundingBox[3] - particle.height,
+  ]);
+
+  return [newX, newY, newX + particle.width, newY + particle.height];
 };
 
 export default class DodgingParticles extends React.Component<DodgingParticlesProps> {
@@ -75,9 +90,13 @@ export default class DodgingParticles extends React.Component<DodgingParticlesPr
       ctx.clearRect(0, 0, canvas.canvasElement.width, canvas.canvasElement.height);
 
       particles.forEach((particle, index) => {
-        const [x, y, xx, yy] = this.particlePositions[index];
-        const [newx, newy] = moveParticle([x, y], [0, 0], boundingBox, particle.speed);
-        this.particlePositions[index] = [newx, newy, xx, yy];
+        this.particlePositions[index] = moveParticle(
+          this.particlePositions[index],
+          10,
+          boundingBox,
+          particle
+        );
+        const [newx, newy] = this.particlePositions[index];
 
         ctx.fillRect(x1 + newx, y1 + newy, particle.width, particle.height);
       });
